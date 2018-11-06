@@ -1,9 +1,9 @@
 <template>
   <div id="factoryCalender-compenont">
-    <div class="factoryCalenderWrapper" ref="factoryCalenderWrapper">
+    <div class="factoryCalenderWrapper rightBlockTabpaneWrapper" ref="rightBlockTabpaneWrapper">
       <transition name="fade">
         <div v-show="!isShowSettingBlock">
-          <Table height="450" :loading="sumTableLoading" border :columns="sumTableTitle" :data="sumTableData" @on-row-click="clickSumTable"></Table>
+          <Table height="450" :loading="sumTableLoading" border :columns="sumTableTitle" :data="sumTableData" @on-row-dblclick="clickSumTable"></Table>
           <div style="margin-top: 30px;text-align:center;">
             <Button type="primary" @click="addFactoryCalender">新 增 工 作 日 历</Button>
           </div>
@@ -89,9 +89,9 @@
           <div>
             <Modal v-model="isShowSettingFestival" v-bind:title="modelTitle" @on-ok="settingFestivalOk" @on-cancel="settingFestivalCancel" ok-text="确认" cancel-text="取消">
               <div>节日名称：<Input v-model="inputFestivalName" placeholder="输入节日名称" style="margin-left: 10px;width:200px" /></div>
-              <div style="margin-top:20px;">开始日期：<DatePicker type="date" @on-change="changeInputFestivalBtime" :value="inputFestivalBtime" placeholder="选择年份" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
+              <div style="margin-top:20px;">开始日期：<DatePicker type="date" @on-change="changeInputFestivalBtime" :value="inputFestivalBtime" placeholder="选择日期" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
               </div>
-              <div style="margin-top:20px;">结束日期：<DatePicker type="date" @on-change="changeInputFestivalEtime" :value="inputFestivalEtime" placeholder="选择年份" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
+              <div style="margin-top:20px;">结束日期：<DatePicker type="date" @on-change="changeInputFestivalEtime" :value="inputFestivalEtime" placeholder="选择日期" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
               </div>
             </Modal>
           </div>
@@ -301,7 +301,7 @@ export default {
     var that = this;
     // 页面初始化设置高度
     this.$nextTick(() => {
-      this.$refs["factoryCalenderWrapper"].style.height = this.windowHeight - 40 - 49 + "px"
+      this.$refs["rightBlockTabpaneWrapper"].style.height = this.windowHeight - 40 - 49 + "px"
     });
     this.reloadMainTable();
   },
@@ -604,12 +604,6 @@ export default {
 
 </script>
 <style scoped>
-.factoryCalenderWrapper {
-  box-sizing: border-box;
-  padding: 0 20px 30px 20px;
-  overflow-y: scroll;
-}
-
 .headerDivider {
   font-size: 18px;
   font-weight: bold;

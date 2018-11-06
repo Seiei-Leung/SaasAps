@@ -15,34 +15,34 @@
                     <Icon type="ios-paper" />
                     权限管理
                   </template>
-                  <MenuItem name="1-1">用户设置</MenuItem>
-                  <MenuItem name="1-2">权限设置</MenuItem>
-                  <MenuItem name="1-3">用户组别</MenuItem>
+                  <MenuItem name="11">用户设置</MenuItem>
+                  <MenuItem name="12">权限设置</MenuItem>
+                  <MenuItem name="13">用户组别</MenuItem>
                 </Submenu>
                 <Submenu name="2">
                   <template slot="title">
                     <Icon type="ios-people" />
                     参数设置
                   </template>
-                  <MenuItem name="2-1">颜色设置</MenuItem>
-                  <MenuItem name="2-2">图标设置</MenuItem>
+                  <MenuItem name="21">颜色设置</MenuItem>
+                  <MenuItem name="22">图标设置</MenuItem>
                 </Submenu>
                 <Submenu name="3">
                   <template slot="title">
                     <Icon type="ios-stats" />
                     基础设置
                   </template>
-                  <MenuItem name="3-1">生产设置</MenuItem>
-                  <MenuItem name="baseSetting-calender">工厂日历</MenuItem>
-                  <MenuItem name="3-3">排产品类</MenuItem>
+                  <MenuItem name="31">生产设置</MenuItem>
+                  <MenuItem name="32">工厂日历</MenuItem>
+                  <MenuItem name="33">排产品类</MenuItem>
                 </Submenu>
                 <Submenu name="4">
                   <template slot="title">
                     <Icon type="ios-people" />
                     排产管理
                   </template>
-                  <MenuItem name="4-1">走货一览表</MenuItem>
-                  <MenuItem name="4-2">排产器</MenuItem>
+                  <MenuItem name="41">走货一览表</MenuItem>
+                  <MenuItem name="42">排产器</MenuItem>
                 </Submenu>
                 <Submenu name="5">
                   <template slot="title">
@@ -60,8 +60,12 @@
           <div class="right-split-pane">
             <div class="rightBlock" ref="rightBlock">
               <Tabs type="card" closable @on-tab-remove="handleTabRemove" :value="activeTab">
+                <!-- 生产设置 -->
+                <TabPane label="生产设置" v-if="isShowList['31']" name="31">
+                  <v-productionSetting></v-productionSetting>
+                </TabPane>
                 <!-- 工厂日历 -->
-                <TabPane label="工厂日历" v-if="isShow.baseSetting.calender" name="baseSetting-calender">
+                <TabPane label="工厂日历" v-if="isShowList['32']" name="32">
                   <v-factoryCalendar></v-factoryCalendar>
                 </TabPane>
               </Tabs>
@@ -74,6 +78,7 @@
 </template>
 <script>
 import factoryCalendar from "../factoryCalendar/factoryCalendar";
+import productionSetting from "../productionSetting/productionSetting";
 
 const headerBarHeight = 40;
 
@@ -82,13 +87,12 @@ export default {
     return {
       splitPercent: 0.2, // 左右侧初始化比例
       theme: "light", // 左侧栏主题颜色
-      // 显示兑现
-      isShow: {
-        // 基础设置
-        baseSetting: {
-          calender: false // 工厂日历
-        }
+      // 用于是否显示右侧模块
+      isShowList: {
+        32: false, // 工厂日历
+        31: false // 生产设置
       },
+      nowShowingList: [], // 用于重新加载 Tab 组件
       activeTab: ""
     }
   },
@@ -99,21 +103,48 @@ export default {
     },
     // 左侧栏项目点击显示事件
     openTag: function(name) {
-      var
-        list = name.split("-"),
-        classification = list[0],
-        detail = list[1];
-      this.isShow[classification][detail] = true;
-      this.activeTab = name;
+      // 框架有bug，必须按 TabPane 组件Dom书写顺序进行加载组件，否则会导致 Tab 组件与 TabPane 组件内容错乱
+      // 记录已经激活的Tab组件后，设置 Tab 组件为初始状态
+      var isnowShowingListHadName = false; 
+      this.nowShowingList.forEach((item) => {
+        this.isShowList[item] = false;
+        if (item == name) {
+          isnowShowingListHadName = true;
+        }
+      });
+      if (!isnowShowingListHadName) {
+        this.nowShowingList.push(Number(name));
+      }
+      var that = this;
+      this.nowShowingList.sort();
+      // 增加延迟，按 TabPane 组件Dom书写顺序进行加载组件
+      setTimeout(function() {
+        that.nowShowingList.forEach((item) => {
+          that.isShowList[item] = true;
+          that.activeTab = name;
+        })
+      }, 100);
     },
     // 分页栏关闭事件
     handleTabRemove: function(name) {
-      var
-        list = name.split("-"),
-        classification = list[0],
-        detail = list[1];
-      this.activeTab = "";
-      this.isShow[classification][detail] = false;
+      this.isShowList[name] = false;
+      // 移出记录
+      for (var i=0; i<this.nowShowingList.length; i++) {
+        if (this.nowShowingList[i] == name) {
+          // 如果当前标签为激活标签，则重新定义激活标签
+          if (name == this.activeTab) {
+            if (i != 0) {
+              this.activeTab = String(this.nowShowingList[i-1]);
+            } else if (this.nowShowingList.length > 1){
+              this.activeTab = String(this.nowShowingList[i+1]);
+            } else {
+              this.activeTab = "";
+            }
+          }
+          this.nowShowingList.splice(i, 1);
+          break;
+        }
+      }
     },
   },
   created: function() {
@@ -126,7 +157,8 @@ export default {
     });
   },
   components: {
-    'v-factoryCalendar': factoryCalendar
+    'v-factoryCalendar': factoryCalendar,
+    'v-productionSetting': productionSetting
   }
 }
 
