@@ -490,7 +490,6 @@ export default {
           params: args
         }).then((response) => {
           if (response.data && !(response.data == "fail")) {
-            console.log(response.data);
             that.$set(that.inputTableData, that.inputTableData.length, {
               "festivalName": that.inputFestivalName,
               "btime": timeStampToString(that.inputFestivalBtime),

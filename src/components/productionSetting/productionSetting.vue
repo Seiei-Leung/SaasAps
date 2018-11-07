@@ -3,7 +3,7 @@
     <div class="productionSettingWrapper rightBlockTabpaneWrapper" ref="rightBlockTabpaneWrapper">
       <transition name="fade">
         <div v-show="!isShowSettingBlock">
-<!--           <div class="filterBar">
+          <!--           <div class="filterBar">
             <div class="title titleFirst">开始时间：</div>
             <div class="inputWrapper">
               <DatePicker type="date" @on-change="changeFilterBtime" :value="filterBtime" placeholder="选择日期" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
@@ -81,7 +81,7 @@
                 隐藏：
               </div>
               <div class="inputWrapper">
-              	<Checkbox v-model="inputHidden"></Checkbox>
+                <Checkbox v-model="inputHidden"></Checkbox>
               </div>
             </div>
           </div>
@@ -90,12 +90,27 @@
             <Tabs type="card">
               <TabPane label="属性效率设置">
                 <Table height="300" border :columns="attributeTableTitle" :data="attributeTableData"></Table>
+                <div class="addBlock">
+                  <Button type="warning" @click="addAttributeTable" size="small">
+                    新增属性效率
+                  </Button>
+                </div>
               </TabPane>
               <TabPane label="日期工时设置">
                 <Table height="300" border :columns="workTimeTableTitle" :data="workTimeTableData"></Table>
+                <div class="addBlock">
+                  <Button type="warning" @click="addWorkTimeTable" size="small">
+                    新增日期工时设置
+                  </Button>
+                </div>
               </TabPane>
               <TabPane label="日期人数设置">
                 <Table height="300" border :columns="peopleNumTableTitle" :data="peopleNumTableData"></Table>
+                <div class="addBlock">
+                  <Button type="warning" @click="addPeopleNumTable" size="small">
+                    新增日期人数设置
+                  </Button>
+                </div>
               </TabPane>
             </Tabs>
             <div style="margin-top:30px;text-align:center;">
@@ -106,6 +121,32 @@
                 退 出
               </Button>
             </div>
+          </div>
+          <div>
+            <!-- 修改属性浮层 -->
+            <Modal v-model="isShowSettingProperity" v-bind:title="settingProperityTitle" @on-ok="settingProperityOk" @on-cancel="settingProperityCancel" ok-text="确认" cancel-text="取消">
+              <div>属性：<Input v-model="inputProperityName" placeholder="输入属性名称" style="margin-left: 10px;width:100px" /></div>
+              <div style="margin-top:20px;">效率：<InputNumber :min="0" :max="1" :step="0.1" v-model="inputProperityEfficiency" style="margin-left: 10px;width: 100px"></InputNumber>
+              </div>
+            </Modal>
+            <!-- 修改工时浮层 -->
+            <Modal v-model="isShowSettingWorkTime" v-bind:title="settingWorkTimeTitle" @on-ok="settingWorkTimeOk" @on-cancel="settingWorkTimeCancel" ok-text="确认" cancel-text="取消">
+              <div>工时：<InputNumber :min="0" :step="0.1" v-model="settingWorkTime" style="margin-left: 10px;width: 100px"></InputNumber>
+              </div>
+              <div style="margin-top:20px;">开始日期：<DatePicker type="date" @on-change="changeSettingWorkTimeBtime" :value="settingWorkTimeBtime" placeholder="选择日期" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
+              </div>
+              <div style="margin-top:20px;">结束日期：<DatePicker type="date" @on-change="changeSettingWorkTimeEtime" :value="settingWorkTimeEtime" placeholder="选择日期" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
+              </div>
+            </Modal>
+            <!-- 修改人数浮层 -->
+            <Modal v-model="isShowSettingNumberofwork" v-bind:title="settingNumberofworkTitle" @on-ok="settingNumberofworkOk" @on-cancel="settingNumberofworkCancel" ok-text="确认" cancel-text="取消">
+              <div>人数：<InputNumber :min="0" :step="1" v-model="settingNumberofwork" style="margin-left: 10px;width: 100px"></InputNumber>
+              </div>
+              <div style="margin-top:20px;">开始日期：<DatePicker type="date" @on-change="changeSettingNumberofworkBtime" :value="settingNumberofworkBtime" placeholder="选择日期" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
+              </div>
+              <div style="margin-top:20px;">结束日期：<DatePicker type="date" @on-change="changeSettingNumberofworkEtime" :value="settingNumberofworkEtime" placeholder="选择日期" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
+              </div>
+            </Modal>
           </div>
         </div>
       </transition>
@@ -316,7 +357,27 @@ export default {
         }
       ],
       peopleNumTableData: [],
-      isSubmitloading: false
+      isSubmitloading: false,
+      isShowSettingProperity: false,
+      settingProperityTitle: "",
+      inputProperityName: "",
+      inputProperityEfficiency: 0,
+      inputProperityGuid: "",
+      inputProperityIndex: 0,
+      isShowSettingWorkTime: false,
+      settingWorkTimeTitle: "",
+      settingWorkTime: 0,
+      settingWorkTimeGuid: "",
+      settingWorkTimeBtime: new Date(),
+      settingWorkTimeEtime: new Date(),
+      settingWorkTimeIndex: 0,
+      isShowSettingNumberofwork: false,
+      settingNumberofworkTitle: "",
+      settingNumberofwork: 0,
+      settingNumberofworkBtime: new Date(),
+      settingNumberofworkEtime: new Date(),
+      settingNumberofworkIndex: 0,
+      settingNumberofworkGuid: "",
     }
   },
   methods: {
@@ -327,7 +388,6 @@ export default {
       this.axios.get(this.seieiURL + '/plandategroup/getMainTable').then((response) => {
         var list = [];
         response.data.forEach((item) => {
-          // hide = 1 ???
           var listItem = {};
           listItem.group = item.bnsgroup;
           listItem.workShop = item.workshop
@@ -421,46 +481,365 @@ export default {
           serialno: this.serialno
         }
       }).then((response) => {
-      	that.attributeTableData = response.data.lineProperties;
-      	response.data.lineWorkinghours.sort((f, s) => {
-      		return Number(f.bdate) - Number(s.bdate);
-      	});
-      	response.data.lineWorkinghours.forEach((item) => {
-      		item.edate = timeStampToString(new Date(item.edate));
-      		item.bdate = timeStampToString(new Date(item.bdate));
-      	});
-      	that.workTimeTableData = response.data.lineWorkinghours;
-      	response.data.numberofwork.sort((f, s) => {
-      		return Number(f.bdate) - Number(s.bdate);
-      	});
-      	response.data.numberofwork.forEach((item) => {
-      		item.edate = timeStampToString(new Date(item.edate));
-      		item.bdate = timeStampToString(new Date(item.bdate));
-      	});
-      	that.peopleNumTableData = response.data.numberofwork;
+        that.attributeTableData = response.data.lineProperties;
+        response.data.lineWorkinghours.sort((f, s) => {
+          return Number(f.bdate) - Number(s.bdate);
+        });
+        response.data.lineWorkinghours.forEach((item) => {
+          item.edate = timeStampToString(new Date(item.edate));
+          item.bdate = timeStampToString(new Date(item.bdate));
+        });
+        that.workTimeTableData = response.data.lineWorkinghours;
+        response.data.numberofwork.sort((f, s) => {
+          return Number(f.bdate) - Number(s.bdate);
+        });
+        response.data.numberofwork.forEach((item) => {
+          item.edate = timeStampToString(new Date(item.edate));
+          item.bdate = timeStampToString(new Date(item.bdate));
+        });
+        that.peopleNumTableData = response.data.numberofwork;
 
       })
     },
     changeAttributeTable: function(index) {
-
+      this.settingProperityTitle = "修改属性效率";
+      this.inputProperityName = this.attributeTableData[index].styleattribute;
+      this.inputProperityEfficiency = this.attributeTableData[index].efficiency;
+      this.inputProperityGuid = this.attributeTableData[index].guid;
+      this.inputProperityIndex = index;
+      this.isShowSettingProperity = true;
     },
     removeAttributeTable: function(index) {
-
+      var that = this;
+      this.axios.get(this.seieiURL + '/plandategroup/deleteLineProperties', {
+        params: {
+          guid: this.attributeTableData[index].guid
+        }
+      }).then((response) => {
+        if (response.data == "success") {
+          that.attributeTableData.splice(index, 1);
+          that.$Message.success("删除成功");
+        } else {
+          that.$Message.error("删除失败");
+        }
+      }).catch((error) => {
+        that.$Message.error({
+          content: "服务器异常,请刷新！！",
+          duration: 0
+        });
+        console.log(error)
+      });
+    },
+    addAttributeTable: function() {
+      this.settingProperityTitle = "新增属性效率";
+      this.inputProperityName = "";
+      this.inputProperityEfficiency = 0;
+      this.isShowSettingProperity = true;
+    },
+    settingProperityOk: function() {
+      if (!this.inputProperityName) {
+        this.$Message.error("属性值不能为空");
+        return;
+      }
+      var that = this;
+      if (this.settingProperityTitle == "修改属性效率") {
+        this.$set(this.attributeTableData, [this.inputProperityIndex], {
+          "styleattribute": this.inputProperityName,
+          "efficiency": this.inputProperityEfficiency
+        });
+        this.axios({
+          method: 'post',
+          url: this.seieiURL + "/plandategroup/updateLineProperties",
+          params: {
+            guid: this.inputProperityGuid,
+            propertyName: this.inputProperityName,
+            efficiency: this.inputProperityEfficiency
+          }
+        }).then((response) => {
+          if (response.data == "success") {
+            that.$Message.success("修改成功");
+          } else {
+            that.$Message.error("修改失败");
+          }
+        }).catch((error) => {
+          that.$Message.error({
+            content: "服务器异常,请刷新！！",
+            duration: 0
+          });
+          console.log(error)
+        });
+      } else {
+        this.axios({
+          method: 'post',
+          url: this.seieiURL + "/plandategroup/insertLineProperties",
+          params: {
+            serialno: this.serialno,
+            styleattribute: this.inputProperityName,
+            efficiency: this.inputProperityEfficiency
+          }
+        }).then((response) => {
+          if (response.data && !(response.data == "fail")) {
+            that.$set(that.attributeTableData, that.attributeTableData.length, {
+              propertyName: this.inputProperityName,
+              efficiency: this.inputProperityEfficiency,
+              guid: response.data
+            });
+            that.$Message.success("新增成功");
+          } else {
+            that.$Message.error("新增失败");
+          }
+        }).catch((error) => {
+          that.$Message.error({
+            content: "服务器异常,请刷新！！",
+            duration: 0
+          });
+          console.log(error)
+        });
+      }
+    },
+    settingProperityCancel: function() {
+      this.isShowSettingProperity = false;
     },
     changeWorkTimeTable: function(index) {
-
+      this.settingWorkTimeTitle = "修改工时";
+      this.settingWorkTimeBtime = new Date(this.workTimeTableData[index].bdate);
+      this.settingWorkTimeEtime = new Date(this.workTimeTableData[index].edate);
+      this.settingWorkTime = this.workTimeTableData[index].workinghours;
+      this.settingWorkTimeGuid = this.workTimeTableData[index].guid;
+      this.settingWorkTimeIndex = index;
+      this.isShowSettingWorkTime = true;
     },
     removeWorkTimeTable: function(index) {
-
+      var that = this;
+      this.axios.get(this.seieiURL + '/plandategroup/deleteWorkingTime', {
+        params: {
+          guid: this.workTimeTableData[index].guid
+        }
+      }).then((response) => {
+        if (response.data == "success") {
+          that.workTimeTableData.splice(index, 1);
+          that.$Message.success("删除成功");
+        } else {
+          that.$Message.error("删除失败");
+        }
+      }).catch((error) => {
+        that.$Message.error({
+          content: "服务器异常,请刷新！！",
+          duration: 0
+        });
+        console.log(error)
+      });
+    },
+    addWorkTimeTable: function() {
+      this.settingWorkTimeTitle = "增加日期工时";
+      this.settingWorkTime = 0;
+      this.settingWorkTimeEtime = new Date();
+      this.settingWorkTimeBtime = new Date();
+      this.isShowSettingWorkTime = true;
+    },
+    changeSettingWorkTimeBtime: function(date) {
+      this.settingWorkTimeBtime = new Date(date);
+    },
+    changeSettingWorkTimeEtime: function(date) {
+      this.settingWorkTimeEtime = new Date(date);
+    },
+    settingWorkTimeOk: function() {
+      var that = this;
+      if (this.settingWorkTimeTitle == "修改工时") {
+        this.$set(this.workTimeTableData, [this.settingWorkTimeIndex], {
+          bdate: timeStampToString(this.settingWorkTimeBtime),
+          edate: timeStampToString(this.settingWorkTimeEtime),
+          workinghours: this.settingWorkTime
+        });
+        this.axios.get(this.seieiURL + '/plandategroup/updateWorkingTime', {
+          params: {
+            guid: this.settingWorkTimeGuid,
+            bdate: this.settingWorkTimeBtime.getTime(),
+            edate: this.settingWorkTimeEtime.getTime(),
+            workinghours: this.settingWorkTime
+          }
+        }).then((response) => {
+          if (response.data == "success") {
+            that.$Message.success("修改成功");
+          } else {
+            that.$Message.error("修改失败");
+          }
+        }).catch((error) => {
+          that.$Message.error({
+            content: "服务器异常,请刷新！！",
+            duration: 0
+          });
+          console.log(error)
+        });
+      } else {
+        this.axios({
+          method: 'post',
+          url: this.seieiURL + "/plandategroup/insertWorkingTime",
+          params: {
+            serialno: this.serialno,
+            bdate: this.settingWorkTimeBtime.getTime(),
+            edate: this.settingWorkTimeEtime.getTime(),
+            workinghours: this.settingWorkTime
+          }
+        }).then((response) => {
+          if (response.data && !(response.data == "fail")) {
+            that.$set(that.workTimeTableData, that.workTimeTableData.length, {
+              bdate: timeStampToString(this.settingWorkTimeBtime),
+              edate: timeStampToString(this.settingWorkTimeEtime),
+              workinghours: this.settingWorkTime,
+              guid: response.data
+            });
+            that.$Message.success("新增成功");
+          } else {
+            that.$Message.error("新增失败");
+          }
+        }).catch((error) => {
+          that.$Message.error({
+            content: "服务器异常,请刷新！！",
+            duration: 0
+          });
+          console.log(error)
+        });
+      }
+    },
+    settingWorkTimeCancel: function() {
+      this.isShowSettingWorkTime = false;
     },
     changePeopleNumTable: function(index) {
-
+      this.settingNumberofworkTitle = "修改人数";
+      this.settingNumberofworkBtime = new Date(this.peopleNumTableData[index].bdate);
+      this.settingNumberofworkEtime = new Date(this.peopleNumTableData[index].edate);
+      this.settingNumberofwork = this.peopleNumTableData[index].numberofwork;
+      this.settingNumberofworkGuid = this.peopleNumTableData[index].guid;
+      this.settingNumberofworkIndex = index;
+      this.isShowSettingNumberofwork = true;
     },
     removePeopleNumTable: function(index) {
-
+      var that = this;
+      this.axios.get(this.seieiURL + '/plandategroup/deleteNumberofwork', {
+        params: {
+          guid: this.peopleNumTableData[index].guid
+        }
+      }).then((response) => {
+        if (response.data == "success") {
+          that.peopleNumTableData.splice(index, 1);
+          that.$Message.success("删除成功");
+        } else {
+          that.$Message.error("删除失败");
+        }
+      }).catch((error) => {
+        that.$Message.error({
+          content: "服务器异常,请刷新！！",
+          duration: 0
+        });
+        console.log(error)
+      });
+    },
+    addPeopleNumTable: function() {
+      this.settingNumberofworkTitle = "增加日期人数";
+      this.settingNumberofwork = 0;
+      this.settingNumberofworkEtime = new Date();
+      this.settingNumberofworkBtime = new Date();
+      this.isShowSettingNumberofwork = true;
+    },
+    settingNumberofworkOk: function() {
+      var that = this;
+      if (this.settingNumberofworkTitle == "修改人数") {
+        this.$set(this.peopleNumTableData, [this.settingNumberofworkIndex], {
+          bdate: timeStampToString(this.settingNumberofworkBtime),
+          edate: timeStampToString(this.settingNumberofworkEtime),
+          numberofwork: this.settingNumberofwork
+        });
+        this.axios.get(this.seieiURL + '/plandategroup/updateNumberofwork', {
+          params: {
+            guid: this.settingNumberofworkGuid,
+            bdate: this.settingNumberofworkBtime.getTime(),
+            edate: this.settingNumberofworkEtime.getTime(),
+            numberofwork: this.settingNumberofwork
+          }
+        }).then((response) => {
+          if (response.data == "success") {
+            that.$Message.success("修改成功");
+          } else {
+            that.$Message.error("修改失败");
+          }
+        }).catch((error) => {
+          that.$Message.error({
+            content: "服务器异常,请刷新！！",
+            duration: 0
+          });
+          console.log(error)
+        });
+      } else {
+        this.axios({
+          method: 'post',
+          url: this.seieiURL + "/plandategroup/insertNumberofwork",
+          params: {
+            serialno: this.serialno,
+            bdate: this.settingNumberofworkBtime.getTime(),
+            edate: this.settingNumberofworkEtime.getTime(),
+            numberofwork: this.settingNumberofwork
+          }
+        }).then((response) => {
+          if (response.data && !(response.data == "fail")) {
+            that.$set(that.peopleNumTableData, that.peopleNumTableData.length, {
+              bdate: timeStampToString(this.settingNumberofworkBtime),
+              edate: timeStampToString(this.settingNumberofworkEtime),
+              numberofwork: this.settingNumberofwork,
+              guid: response.data
+            });
+            that.$Message.success("新增成功");
+          } else {
+            that.$Message.error("新增失败");
+          }
+        }).catch((error) => {
+          that.$Message.error({
+            content: "服务器异常,请刷新！！",
+            duration: 0
+          });
+          console.log(error)
+        });
+      }
+    },
+    settingNumberofworkCancel: function() {
+      this.isShowSettingNumberofwork = false;
+    },
+    changeSettingNumberofworkBtime: function(date) {
+      this.SettingNumberofworkBtime = new Date(date);
+    },
+    changeSettingNumberofworkEtime: function(date) {
+      this.SettingNumberofworkEtime = new Date(date);
     },
     submit: function() {
-
+      if (!this.inputGroup || !this.inputWorkShop || !this.inputProductLine || !this.inputAttribute) {
+        this.$Message.error("组别、车间及生产线，属性不能为空");
+      } else {
+        var that = this;
+        var args = {};
+        args.bnsgroup = this.inputGroup;
+        args.workshop = this.inputWorkShop;
+        args.line = this.inputProductLine;
+        args.numberofwork = this.inputPeopleNum;
+        args.workinghours = this.inputWorkTime;
+        args.Trait = this.inputAttribute;
+        args.Hided = this.inputHidden ? 1 : 0;
+        args.serialno = this.serialno;
+        this.axios.get(this.seieiURL + "/plandategroup/updateMainTable", {
+          params: args
+        }).then((response) => {
+          if (response.data == "success") {
+            that.$Message.success("保存成功");
+          } else {
+            that.$Message.error("保存失败");
+          }
+        }).catch((error) => {
+          that.$Message.error({
+            content: "服务器异常,请刷新！！",
+            duration: 0
+          });
+          console.log(error)
+        });
+      }
     },
     getOut: function() {
       this.isShowSettingBlock = false;
@@ -505,6 +884,14 @@ export default {
   line-height: 35px;
   font-size: 12px;
   vertical-align: top;
+}
+
+.bottomBlock .addBlock {
+  box-sizing: border-box;
+  padding: 5px 30px 5px 0;
+  text-align: right;
+  border: 1px solid #ddd;
+  border-top: none;
 }
 
 </style>
