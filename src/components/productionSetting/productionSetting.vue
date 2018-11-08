@@ -32,6 +32,9 @@
             </div>
           </div>
           <Table height="450" :loading="sumTableLoading" border :columns="sumTableTitle" :data="sumTableDataForShow" @on-row-dblclick="clickSumTable"></Table>
+          <div style="margin-top: 30px;text-align:center;">
+            <Button type="primary" @click="addSumTable">新 增 生 产 设 置</Button>
+          </div>
         </div>
       </transition>
       <transition name="fade">
@@ -89,7 +92,7 @@
             <Divider class="headerDivider" style="font-weight:normal;">特 殊 日 期 设 置</Divider>
             <Tabs type="card">
               <TabPane label="属性效率设置">
-                <Table height="300" border :columns="attributeTableTitle" :data="attributeTableData"></Table>
+                <Table height="300" border :columns="attributeTableTitle" :data="attributeTableData" :loading="inputTableLoading"></Table>
                 <div class="addBlock">
                   <Button type="warning" @click="addAttributeTable" size="small">
                     新增属性效率
@@ -199,13 +202,14 @@ export default {
       filterProductionLine: "", // 主档筛选生产线
       filterAttribute: "", // 主档筛选属性
       serialno: "",
-      inputGroup: "", // 输入组别
-      inputWorkShop: "", // 输入组别
-      inputProductLine: "", // 输入组别
-      inputPeopleNum: 0,
-      inputWorkTime: 0,
-      inputAttribute: "",
-      inputHidden: false,
+      inputGroup: "", // 主档输入组别
+      inputWorkShop: "", // 主档输入组别
+      inputProductLine: "", // 主档输入组别
+      inputPeopleNum: 0, // 主档输入人数
+      inputWorkTime: 0, // 主档输入工时
+      inputAttribute: "", // 主档输入属性
+      inputHidden: false, // 主档输入隐藏
+      // 属性效率表头
       attributeTableTitle: [{
           title: "属性",
           key: "styleattribute",
@@ -252,7 +256,9 @@ export default {
           }
         }
       ],
+      // 属性效率表数据
       attributeTableData: [],
+      // 日期工时表头
       workTimeTableTitle: [{
           title: "开始日期",
           key: "bdate",
@@ -304,7 +310,9 @@ export default {
           }
         }
       ],
+      // 日期工时表数据
       workTimeTableData: [],
+      // 日期人数表头
       peopleNumTableTitle: [{
           title: "开始日期",
           key: "bdate",
@@ -356,28 +364,31 @@ export default {
           }
         }
       ],
+      // 日期人数表数据
       peopleNumTableData: [],
-      isSubmitloading: false,
-      isShowSettingProperity: false,
-      settingProperityTitle: "",
-      inputProperityName: "",
-      inputProperityEfficiency: 0,
-      inputProperityGuid: "",
-      inputProperityIndex: 0,
-      isShowSettingWorkTime: false,
-      settingWorkTimeTitle: "",
-      settingWorkTime: 0,
-      settingWorkTimeGuid: "",
-      settingWorkTimeBtime: new Date(),
-      settingWorkTimeEtime: new Date(),
-      settingWorkTimeIndex: 0,
-      isShowSettingNumberofwork: false,
-      settingNumberofworkTitle: "",
-      settingNumberofwork: 0,
-      settingNumberofworkBtime: new Date(),
-      settingNumberofworkEtime: new Date(),
-      settingNumberofworkIndex: 0,
-      settingNumberofworkGuid: "",
+      isSubmitloading: false, // 提交按钮loading动作
+      isShowSettingProperity: false, // 是否显示修改属性的浮动层
+      settingProperityTitle: "", // 修改属性的标题
+      inputProperityName: "", // 修改属性的输入属性名称
+      inputProperityEfficiency: 0, // 修改属性的浮动层的输入效率
+      inputProperityGuid: "", // 修改属性的 guid 值
+      inputProperityIndex: 0, // 修改属性在数据表表中的 index 值
+      isShowSettingWorkTime: false, // 是否显示修改工时的浮动层
+      settingWorkTimeTitle: "", // 修改工时的浮动层的标题
+      settingWorkTime: 0, // 修改工时的输入工时
+      settingWorkTimeGuid: "", // 修改工时的 guid 值
+      settingWorkTimeBtime: new Date(), // 修改工时的开始时间
+      settingWorkTimeEtime: new Date(), // 修改工时的结束时间
+      settingWorkTimeIndex: 0, // 修改工时在数据表表中的 index 值
+      isShowSettingNumberofwork: false, // 是否显示修改人数的浮动层
+      settingNumberofworkTitle: "", // 修改人数的标题
+      settingNumberofwork: 0, // 修改人数的输入人数
+      settingNumberofworkBtime: new Date(), // 修改人数的开始时间
+      settingNumberofworkEtime: new Date(), // 修改人数的结束时间
+      settingNumberofworkIndex: 0, // 修改人数在数据表表中的 index 值
+      settingNumberofworkGuid: "", // 修改人数的 guid 值
+      isAddMainTable: false, // 是否新增主档信息
+      inputTableLoading: false
     }
   },
   methods: {
@@ -406,7 +417,8 @@ export default {
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
-          duration: 0
+          duration: 0,
+          closable: true
         });
         console.log(error)
       });
@@ -464,6 +476,7 @@ export default {
     },
     // 点击主档表格
     clickSumTable: function(data, index) {
+      this.isAddMainTable = false;
       this.isShowSettingBlock = true;
       this.inputGroup = data.group;
       this.inputWorkShop = data.workShop;
@@ -473,6 +486,7 @@ export default {
       this.inputAttribute = data.attribute;
       this.inputWorkTime = data.workTime;
       this.inputHidden = data.hided == 0 ? false : true;
+      this.inputTableLoading = true;
       var that = this;
       this.axios({
         method: 'post',
@@ -498,9 +512,29 @@ export default {
           item.bdate = timeStampToString(new Date(item.bdate));
         });
         that.peopleNumTableData = response.data.numberofwork;
-
+        that.inputTableLoading = false;
       })
     },
+    // 点击新增主档信息按钮
+    addSumTable: function() {
+      var that = this;
+      this.axios.get(this.seieiURL + '/plandategroup/deleteLineProperties').then((response) => {
+        that.serialno = response.data;
+        that.isShowSettingBlock = true;
+        that.isAddMainTable = true;
+        that.workTimeTableData = [];
+        that.peopleNumTableData = [];
+        that.peopleNumTableData = [];
+      }).catch((error) => {
+        that.$Message.error({
+          content: "服务器异常,请刷新！！",
+          duration: 0,
+          closable: true
+        });
+        console.log(error)
+      });
+    },
+    // 点击属性从表中的修改按钮
     changeAttributeTable: function(index) {
       this.settingProperityTitle = "修改属性效率";
       this.inputProperityName = this.attributeTableData[index].styleattribute;
@@ -509,6 +543,7 @@ export default {
       this.inputProperityIndex = index;
       this.isShowSettingProperity = true;
     },
+    // 点击属性从表中的删除按钮
     removeAttributeTable: function(index) {
       var that = this;
       this.axios.get(this.seieiURL + '/plandategroup/deleteLineProperties', {
@@ -525,17 +560,20 @@ export default {
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
-          duration: 0
+          duration: 0,
+          closable: true
         });
         console.log(error)
       });
     },
+    // 点击属性从表中的增加按钮
     addAttributeTable: function() {
       this.settingProperityTitle = "新增属性效率";
       this.inputProperityName = "";
       this.inputProperityEfficiency = 0;
       this.isShowSettingProperity = true;
     },
+    // 点击属性浮动层的确定按钮
     settingProperityOk: function() {
       if (!this.inputProperityName) {
         this.$Message.error("属性值不能为空");
@@ -564,7 +602,8 @@ export default {
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
@@ -591,15 +630,18 @@ export default {
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
       }
     },
+    // 点击属性浮动层的取消按钮
     settingProperityCancel: function() {
       this.isShowSettingProperity = false;
     },
+    // 点击工时从表中的修改按钮
     changeWorkTimeTable: function(index) {
       this.settingWorkTimeTitle = "修改工时";
       this.settingWorkTimeBtime = new Date(this.workTimeTableData[index].bdate);
@@ -609,6 +651,7 @@ export default {
       this.settingWorkTimeIndex = index;
       this.isShowSettingWorkTime = true;
     },
+    // 点击工时从表中的删除按钮
     removeWorkTimeTable: function(index) {
       var that = this;
       this.axios.get(this.seieiURL + '/plandategroup/deleteWorkingTime', {
@@ -625,11 +668,13 @@ export default {
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
-          duration: 0
+          duration: 0,
+          closable: true
         });
         console.log(error)
       });
     },
+    // 点击工时从表中的增加按钮
     addWorkTimeTable: function() {
       this.settingWorkTimeTitle = "增加日期工时";
       this.settingWorkTime = 0;
@@ -637,12 +682,15 @@ export default {
       this.settingWorkTimeBtime = new Date();
       this.isShowSettingWorkTime = true;
     },
+    // 修改工时浮动层的开始时间
     changeSettingWorkTimeBtime: function(date) {
       this.settingWorkTimeBtime = new Date(date);
     },
+    // 修改工时浮动层的结束时间
     changeSettingWorkTimeEtime: function(date) {
       this.settingWorkTimeEtime = new Date(date);
     },
+    // 点击工时浮动层的确定按钮
     settingWorkTimeOk: function() {
       var that = this;
       if (this.settingWorkTimeTitle == "修改工时") {
@@ -667,7 +715,8 @@ export default {
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
@@ -696,15 +745,18 @@ export default {
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
       }
     },
+    // 点击工时浮动层的取消按钮
     settingWorkTimeCancel: function() {
       this.isShowSettingWorkTime = false;
     },
+    // 点击人数从表的修改按钮
     changePeopleNumTable: function(index) {
       this.settingNumberofworkTitle = "修改人数";
       this.settingNumberofworkBtime = new Date(this.peopleNumTableData[index].bdate);
@@ -714,6 +766,7 @@ export default {
       this.settingNumberofworkIndex = index;
       this.isShowSettingNumberofwork = true;
     },
+    // 点击人数从表的删除按钮
     removePeopleNumTable: function(index) {
       var that = this;
       this.axios.get(this.seieiURL + '/plandategroup/deleteNumberofwork', {
@@ -730,11 +783,13 @@ export default {
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
-          duration: 0
+          duration: 0,
+          closable: true
         });
         console.log(error)
       });
     },
+    // 点击人数从表的增加按钮
     addPeopleNumTable: function() {
       this.settingNumberofworkTitle = "增加日期人数";
       this.settingNumberofwork = 0;
@@ -742,6 +797,7 @@ export default {
       this.settingNumberofworkBtime = new Date();
       this.isShowSettingNumberofwork = true;
     },
+    // 点击人数浮动层的确认按钮
     settingNumberofworkOk: function() {
       var that = this;
       if (this.settingNumberofworkTitle == "修改人数") {
@@ -766,7 +822,8 @@ export default {
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
@@ -795,25 +852,31 @@ export default {
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
       }
     },
+    // 点击人数浮动层的取消按钮
     settingNumberofworkCancel: function() {
       this.isShowSettingNumberofwork = false;
     },
+    // 修改人数浮动层的开始时间
     changeSettingNumberofworkBtime: function(date) {
       this.SettingNumberofworkBtime = new Date(date);
     },
+    // 修改人数浮动层的结束时间
     changeSettingNumberofworkEtime: function(date) {
       this.SettingNumberofworkEtime = new Date(date);
     },
+    // 点击提交主档按钮
     submit: function() {
       if (!this.inputGroup || !this.inputWorkShop || !this.inputProductLine || !this.inputAttribute) {
         this.$Message.error("组别、车间及生产线，属性不能为空");
       } else {
+        this.isSubmitloading = true;
         var that = this;
         var args = {};
         args.bnsgroup = this.inputGroup;
@@ -824,29 +887,38 @@ export default {
         args.Trait = this.inputAttribute;
         args.Hided = this.inputHidden ? 1 : 0;
         args.serialno = this.serialno;
-        this.axios.get(this.seieiURL + "/plandategroup/updateMainTable", {
+        var url;
+        if (!this.isAddMainTable) {
+          url = this.seieiURL + "/plandategroup/updateMainTable";
+        } else {
+          url = this.seieiURL + "/plandategroup/insertMainTable";
+        }
+        this.axios.get(url, {
           params: args
         }).then((response) => {
           if (response.data == "success") {
             that.$Message.success("保存成功");
+            that.isSubmitloading = false;
+            that.isAddMainTable = false;
           } else {
             that.$Message.error("保存失败");
           }
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
       }
     },
+    // 点击主档返回按钮
     getOut: function() {
       this.isShowSettingBlock = false;
     }
   },
   created: function() {
-    var that = this;
     // 页面初始化设置高度
     this.$nextTick(() => {
       this.$refs["rightBlockTabpaneWrapper"].style.height = this.windowHeight - 40 - 49 + "px"

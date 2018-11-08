@@ -68,6 +68,10 @@
                 <TabPane label="工厂日历" v-if="isShowList['32']" name="32">
                   <v-factoryCalendar></v-factoryCalendar>
                 </TabPane>
+                <!-- 排产品类 -->
+                <TabPane label="排产品类" v-if="isShowList['33']" name="33">
+                  <v-productionClass></v-productionClass>
+                </TabPane>
               </Tabs>
             </div>
           </div>
@@ -79,6 +83,7 @@
 <script>
 import factoryCalendar from "../factoryCalendar/factoryCalendar";
 import productionSetting from "../productionSetting/productionSetting";
+import productionClass from "../productionClass/productionClass";
 
 const headerBarHeight = 40;
 
@@ -90,7 +95,8 @@ export default {
       // 用于是否显示右侧模块
       isShowList: {
         32: false, // 工厂日历
-        31: false // 生产设置
+        31: false, // 生产设置
+        33: false // 排产品类
       },
       nowShowingList: [], // 用于重新加载 Tab 组件
       activeTab: ""
@@ -158,7 +164,8 @@ export default {
   },
   components: {
     'v-factoryCalendar': factoryCalendar,
-    'v-productionSetting': productionSetting
+    'v-productionSetting': productionSetting,
+    'v-productionClass': productionClass
   }
 }
 

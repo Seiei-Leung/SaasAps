@@ -5,7 +5,7 @@
         <div v-show="!isShowSettingBlock">
           <Table height="450" :loading="sumTableLoading" border :columns="sumTableTitle" :data="sumTableData" @on-row-dblclick="clickSumTable"></Table>
           <div style="margin-top: 30px;text-align:center;">
-            <Button type="primary" @click="addFactoryCalender">新 增 工 作 日 历</Button>
+            <Button type="primary" @click="addSumTable">新 增 工 作 日 历</Button>
           </div>
         </div>
       </transition>
@@ -298,7 +298,6 @@ export default {
     }
   },
   created: function() {
-    var that = this;
     // 页面初始化设置高度
     this.$nextTick(() => {
       this.$refs["rightBlockTabpaneWrapper"].style.height = this.windowHeight - 40 - 49 + "px"
@@ -332,7 +331,8 @@ export default {
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
-          duration: 0
+          duration: 0,
+          closable: true
         });
         console.log(error)
       });
@@ -361,13 +361,14 @@ export default {
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
-          duration: 0
+          duration: 0,
+          closable: true
         });
         console.log(error)
       });
     },
     // 新增工厂日历
-    addFactoryCalender: function() {
+    addSumTable: function() {
       var that = this;
       this.axios.get(this.seieiURL + '/factorycalender/getSerialnoForMainTable').then((response) => {
         that.serialno = response.data;
@@ -421,7 +422,8 @@ export default {
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
-          duration: 0
+          duration: 0,
+          closable: true
         });
         console.log(error)
       });
@@ -457,7 +459,8 @@ export default {
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
@@ -503,7 +506,8 @@ export default {
         }).catch((error) => {
           that.$Message.error({
             content: "服务器异常,请刷新！！",
-            duration: 0
+            duration: 0,
+            closable: true
           });
           console.log(error)
         });
@@ -566,7 +570,8 @@ export default {
           }).catch((error) => {
             that.$Message.error({
               content: "服务器异常,请刷新！！",
-              duration: 0
+              duration: 0,
+              closable: true
             });
             console.log(error)
           });
@@ -586,7 +591,8 @@ export default {
           }).catch((error) => {
             that.$Message.error({
               content: "服务器异常,请刷新！！",
-              duration: 0
+              duration: 0,
+              closable: true
             });
             console.log(error)
           });
@@ -637,4 +643,5 @@ export default {
   border: 1px solid #ddd;
   border-top: none;
 }
+
 </style>
