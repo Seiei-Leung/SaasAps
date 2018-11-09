@@ -329,7 +329,20 @@ export default {
       this.inputEfficiency = 0;
     },
     addSumTable: function() {
-    	this.isAddMainTable = true;
+    	var that = this;
+    	this.axios.get(this.seieiURL + '/productionclass/getSerialno').then((response) => {
+    		that.isAddMainTable = true;
+    		that.isShowSettingBlock = true;
+        	that.inputTableLoading = false;
+    		that.serialno = response.data;
+        }).catch((error) => {
+          that.$Message.error({
+            content: "服务器异常,请刷新！！",
+            duration: 0,
+            closable: true
+          });
+          console.log(error)
+        });
     },
     submit: function() {
       if (!this.inputCno || !this.inputCname) {
@@ -342,6 +355,7 @@ export default {
         args.cno = this.inputCno;
         args.efficiencystart = this.inputEfficiencystart;
         args.efficiency = this.inputEfficiency;
+        args.cuttingsam = this.inputCuttingsam;
         args.serialno = this.serialno;
         this.isSubmitloading = true;
         if (!this.isAddMainTable) {
@@ -371,6 +385,14 @@ export default {
     },
     getOut: function() {
       this.isShowSettingBlock = false;
+      this.isAddMainTable = false;
+      this.reloadMainTable();
+      this.inputTableData = [];
+      this.inputCno = "";
+      this.inputCname = "";
+      this.inputEfficiency = 0;
+      this.inputEfficiencystart = 0;
+      this.inputCuttingsam = 0;
     }
   },
   created: function() {

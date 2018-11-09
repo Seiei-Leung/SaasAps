@@ -522,9 +522,7 @@ export default {
         that.serialno = response.data;
         that.isShowSettingBlock = true;
         that.isAddMainTable = true;
-        that.workTimeTableData = [];
-        that.peopleNumTableData = [];
-        that.peopleNumTableData = [];
+        that.inputTableLoading = false;
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
@@ -916,6 +914,18 @@ export default {
     // 点击主档返回按钮
     getOut: function() {
       this.isShowSettingBlock = false;
+      this.isAddMainTable = false;
+      this.reloadMainTable();
+      this.peopleNumTableData = [];
+      this.workTimeTableData = [];
+      this.attributeTableData = [];
+      this.inputGroup = "";
+      this.inputWorkShop = "";
+      this.inputProductLine = "";
+      this.inputPeopleNum = 0;
+      this.inputWorkTime = 0;
+      this.inputAttribute = "";
+      this.inputHidden = false;
     }
   },
   created: function() {

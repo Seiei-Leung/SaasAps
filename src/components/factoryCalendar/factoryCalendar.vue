@@ -602,6 +602,7 @@ export default {
     // 退出设置
     getOut: function() {
       this.inputTableData = [];
+      this.isAddMainTable = false;
       this.isShowSettingBlock = false;
     }
   }

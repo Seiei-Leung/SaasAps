@@ -60,6 +60,10 @@
           <div class="right-split-pane">
             <div class="rightBlock" ref="rightBlock">
               <Tabs type="card" closable @on-tab-remove="handleTabRemove" :value="activeTab">
+                <!-- 用户组别 -->
+                <TabPane label="用户组别" v-if="isShowList['13']" name="13">
+                  <v-productionSetting></v-productionSetting>
+                </TabPane>
                 <!-- 生产设置 -->
                 <TabPane label="生产设置" v-if="isShowList['31']" name="31">
                   <v-productionSetting></v-productionSetting>
@@ -94,6 +98,7 @@ export default {
       theme: "light", // 左侧栏主题颜色
       // 用于是否显示右侧模块
       isShowList: {
+        13: false, // 用户组别
         32: false, // 工厂日历
         31: false, // 生产设置
         33: false // 排产品类
