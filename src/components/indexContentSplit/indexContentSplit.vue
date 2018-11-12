@@ -62,7 +62,7 @@
               <Tabs type="card" closable @on-tab-remove="handleTabRemove" :value="activeTab">
                 <!-- 用户组别 -->
                 <TabPane label="用户组别" v-if="isShowList['13']" name="13">
-                  <v-productionSetting></v-productionSetting>
+                  <v-userGroup></v-userGroup>
                 </TabPane>
                 <!-- 生产设置 -->
                 <TabPane label="生产设置" v-if="isShowList['31']" name="31">
@@ -88,6 +88,7 @@
 import factoryCalendar from "../factoryCalendar/factoryCalendar";
 import productionSetting from "../productionSetting/productionSetting";
 import productionClass from "../productionClass/productionClass";
+import userGroup from "../userGroup/userGroup";
 
 const headerBarHeight = 40;
 
@@ -170,7 +171,8 @@ export default {
   components: {
     'v-factoryCalendar': factoryCalendar,
     'v-productionSetting': productionSetting,
-    'v-productionClass': productionClass
+    'v-productionClass': productionClass,
+    'v-userGroup': userGroup
   }
 }
 
