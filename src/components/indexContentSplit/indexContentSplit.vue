@@ -60,6 +60,10 @@
           <div class="right-split-pane">
             <div class="rightBlock" ref="rightBlock">
               <Tabs type="card" closable @on-tab-remove="handleTabRemove" :value="activeTab">
+                <!-- 用户设置 -->
+                <TabPane label="用户设置" v-if="isShowList['11']" name="11">
+                  <v-userSetting></v-userSetting>
+                </TabPane>
                 <!-- 用户组别 -->
                 <TabPane label="用户组别" v-if="isShowList['13']" name="13">
                   <v-userGroup></v-userGroup>
@@ -89,6 +93,7 @@ import factoryCalendar from "../factoryCalendar/factoryCalendar";
 import productionSetting from "../productionSetting/productionSetting";
 import productionClass from "../productionClass/productionClass";
 import userGroup from "../userGroup/userGroup";
+import userSetting from "../userSetting/userSetting";
 
 const headerBarHeight = 40;
 
@@ -99,6 +104,7 @@ export default {
       theme: "light", // 左侧栏主题颜色
       // 用于是否显示右侧模块
       isShowList: {
+        11: false, // 用户设置
         13: false, // 用户组别
         32: false, // 工厂日历
         31: false, // 生产设置
@@ -172,7 +178,8 @@ export default {
     'v-factoryCalendar': factoryCalendar,
     'v-productionSetting': productionSetting,
     'v-productionClass': productionClass,
-    'v-userGroup': userGroup
+    'v-userGroup': userGroup,
+    'v-userSetting': userSetting
   }
 }
 
