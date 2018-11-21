@@ -9,7 +9,10 @@
       </div>
       <!-- 右侧栏 -->
       <div class="userSettingRightBlock" ref="userSettingRightBlock">
-        <Table v-bind:height="tableHeight" :loading="tableLoading" border :columns="tableTitle" :data="tableData" @on-row-dblclick="clickTable"></Table>
+        <Table v-bind:height="tableHeight" :loading="tableLoading" border :columns="tableTitle" :data="tableData"></Table>
+        <div style="margin-top: 5px; text-align: center;">
+          <Button type="primary" @click="insertUserSetting">新 增 用 户 设 置</Button>
+        </div>
       </div>
     </div>
     <div>
@@ -18,21 +21,7 @@
         <div class="userSetting-component">
           <div class="inputBar">
             <div class="title">
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;工号：
-            </div>
-            <div class="inputWrapper">
-              <Input v-model="inputEmployeeno" style="width: 100px"></Input>
-            </div>
-            <div class="title">
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;职位：
-            </div>
-            <div class="inputWrapper">
-              <Input v-model="inputEmployeename" style="width: 100px"></Input>
-            </div>
-          </div>
-          <div class="inputBar">
-            <div class="title">
-              用户账号：
+              &nbsp;用户账号：
             </div>
             <div class="inputWrapper">
               <Input v-model="inputCode" style="width: 100px"></Input>
@@ -46,10 +35,10 @@
           </div>
           <div class="inputBar">
             <div class="title">
-              &nbsp;&nbsp;&nbsp;&nbsp;助记码：
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;等级：
             </div>
             <div class="inputWrapper">
-              <Input v-model="inputMnemoniccode" style="width: 100px"></Input>
+              <InputNumber :max="9" :step="1" :min="1" v-model="inputGrade" style="width: 100px"></InputNumber>
             </div>
             <div class="title">
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;密码：
@@ -60,19 +49,23 @@
           </div>
           <div class="inputBar">
             <div class="title">
-              超级用户：
+              &nbsp;超级用户：
             </div>
             <div class="inputWrapper">
               <Checkbox v-model="inputIsadmin"></Checkbox>
             </div>
             <div class="title">
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;隐藏：
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;隐藏：
             </div>
             <div class="inputWrapper">
               <Checkbox v-model="inputDel"></Checkbox>
             </div>
           </div>
         </div>
+      </Modal>
+      <!-- 删除组别 -->
+      <Modal v-model="isShowDeleteBlock" v-bind:title="deleteBlockTitle" @on-ok="deleteBlockOk" @on-cancel="deleteBlockCancel" ok-text="确认" cancel-text="取消">
+        <div>{{deleteBlockText}}</div>
       </Modal>
     </div>
   </div>
@@ -92,21 +85,6 @@ export default {
         {
           title: '用户名称',
           key: 'name',
-          align: "center"
-        },
-        {
-          title: '助记码',
-          key: 'mnemoniccode',
-          align: "center"
-        },
-        {
-          title: '可查询月数',
-          key: 'querymons',
-          align: "center"
-        },
-        {
-          title: '访问范围（按月）',
-          key: 'queryscope',
           align: "center"
         },
         {
@@ -145,28 +123,57 @@ export default {
           }
         },
         {
-          title: '工号',
-          key: 'employeeno',
-          align: "center"
-        },
-        {
-          title: '姓名',
-          key: 'employeename',
-          align: "center"
+          title: '操作',
+          key: 'action',
+          width: 150,
+          align: 'center',
+          render: (h, params) => {
+            return h('div', [
+              h('Button', {
+                props: {
+                  type: 'primary',
+                  size: 'small'
+                },
+                style: {
+                  marginRight: '5px'
+                },
+                on: {
+                  click: () => {
+                    this.changeAttributeTable(params.row, params.index)
+                  }
+                }
+              }, '修改'),
+              h('Button', {
+                props: {
+                  type: 'error',
+                  size: 'small'
+                },
+                on: {
+                  click: () => {
+                    this.deleteUserSetting(params.row.id, params.index)
+                  }
+                }
+              }, '删除')
+            ]);
+          }
         }
       ],
       tableData: [],
       isModifyUserSetting: false,
       ModifyUserSettingTitle: "修改用户资料",
-      inputEmployeename: "",
-      inputEmployeeno: "",
       inputCode: "",
       inputName: "",
-      inputMnemoniccode: "",
       inputPassWord: "",
-      inputGrade: "",
+      inputGrade: 0,
       inputIsadmin: "",
-      inputDel: ""
+      inputDel: "",
+      inputID: "",
+      inputIndex: "",
+      inputTreeCode: "",
+      isInsertUserSetting: false,
+      isShowDeleteBlock: false,
+      deleteBlockText: "是否删除该用户设置",
+      deleteBlockTitle: "删除用户设置"
     };
   },
   methods: {
@@ -215,13 +222,14 @@ export default {
       this.$refs['userSettingLeftBlock'].getElementsByClassName(data.title)[0].className += ' active';
       var that = this;
       this.tableLoading = true;
+      this.inputTreeCode = data.resource.treecode;
       this.axios.get(this.seieiURL + "/syusers/getallbytreecode", {
         params: {
           treeCode: data.resource.treecode
         }
       }).then((response) => {
         that.tableLoading = false;
-        that.tableData = response.data;
+        that.tableData = response.data.data;
       }).catch((error) => {
         that.tableLoading = false;
         that.$Message.error({
@@ -231,35 +239,130 @@ export default {
         });
         console.log(error)
       });
-      // console.log(root);
-      // console.log(node);
-      // console.log(data);
     },
-    clickTable: function(data, index) {
-      console.log(data);
+    changeAttributeTable: function(data, index) {
       this.isModifyUserSetting = true;
-      this.inputEmployeename = data.employeename;
-      this.inputEmployeeno = data.employeeno;
       this.inputCode = data.code;
       this.inputName = data.name;
-      this.inputMnemoniccode = data.mnemoniccode;
       this.inputPassWord = data.pw;
       this.inputGrade = data.grade;
       this.inputIsadmin = data.isadmin;
       this.inputDel = data.del;
+      this.inputID = data.id;
+      this.ModifyUserSettingTitle = "修改用户资料";
+      this.isInsertUserSetting = false;
+      this.inputIndex = index;
     },
     ModifyUserSettingOk: function() {
-
+      var that = this,
+        url;
+      if (!this.isInsertUserSetting) {
+        url = this.seieiURL + "/syusers/updateusersetting";
+      } else {
+        url = this.seieiURL + "/syusers/insertusersetting";
+      }
+      this.axios.get(url, {
+        params: {
+          code: this.inputCode,
+          name: this.inputName,
+          pw: this.inputPassWord,
+          grade: this.inputGrade,
+          isadmin: this.inputIsadmin,
+          del: this.inputDel,
+          id: this.inputID,
+          typecode: this.inputTreeCode
+        }
+      }).then((response) => {
+        if (response.data.status == 0) {
+          that.$Message.success(response.data.msg);
+          if (that.isInsertUserSetting) {
+            that.tableData.push({
+              code: that.inputCode,
+              name: that.inputName,
+              pw: that.inputPassWord,
+              grade: that.inputGrade,
+              isadmin: that.inputIsadmin,
+              del: that.inputDel,
+              id: response.data.data
+            })
+          } else {
+            that.$set(that.tableData, [that.inputIndex], {
+              code: that.inputCode,
+              name: that.inputName,
+              pw: that.inputPassWord,
+              grade: that.inputGrade,
+              isadmin: that.inputIsadmin,
+              del: that.inputDel,
+              id: that.inputID,
+              typecode: that.inputTreeCode
+            });
+          }
+        } else {
+          that.$Message.error(response.data.msg);
+        }
+      }).catch((error) => {
+        that.$Message.error({
+          content: "服务器异常,请刷新！！",
+          duration: 0,
+          closable: true
+        });
+        console.log(error)
+      });
     },
     ModifyUserSettingCancel: function() {
 
+    },
+    deleteUserSetting: function(id, index) {
+      this.inputID = id;
+      this.inputIndex = index;
+      this.isShowDeleteBlock = true;
+    },
+    deleteBlockOk: function(id) {
+      var that = this;
+      this.axios.get(this.seieiURL + "/syusers/deleteusersetting", {
+        params: {
+          id: this.inputID
+        }
+      }).then((response) => {
+        if (response.data.status == 0) {
+          that.$Message.success(response.data.msg);
+          that.tableData.splice(that.inputIndex, 1);
+        } else {
+          that.$Message.error(response.data.msg);
+        }
+      }).catch((error) => {
+        that.$Message.error({
+          content: "服务器异常,请刷新！！",
+          duration: 0,
+          closable: true
+        });
+        console.log(error)
+      });
+    },
+    deleteBlockCancel: function() {
+
+    },
+    insertUserSetting: function() {
+      if (!this.inputTreeCode) {
+        this.$Message.error("请点击用户组别！");
+      } else {
+        this.ModifyUserSettingTitle = "新增用户资料";
+        this.isInsertUserSetting = true;
+        this.isModifyUserSetting = true;
+        this.inputCode = "";
+        this.inputName = "";
+        this.inputPassWord = "";
+        this.inputGrade = 9;
+        this.inputIsadmin = false;
+        this.inputDel = false;
+      }
     }
   },
   created: function() {
     // 页面初始化设置高度
     this.$nextTick(() => {
       this.$refs["userSettingLeftBlock"].style.height = this.$refs["userSettingRightBlock"].style.height = this.windowHeight - 40 - 49 - 30 + "px";
-      this.tableHeight = this.windowHeight - 40 - 49 - 30;
+      this.tableHeight = this.windowHeight - 40 - 49 - 30 - 50;
     });
     this.reloadTree();
   }
