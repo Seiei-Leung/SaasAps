@@ -45,7 +45,7 @@ export default {
     reloadMainTable: function() {
       var that = this;
       this.axios.get(this.seieiURL + "/sygroup/getAll").then((response) => {
-        that.treeData = response.data;
+        that.treeData = response.data.data;
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
@@ -143,33 +143,26 @@ export default {
             groupName: this.groupName
           }
         }).then((response) => {
-          if (response.data != "fail") {
-            that.$Message.success("增加成功");
+          if (response.data.status == 0) {
+            that.$Message.success(response.data.msg);
             // 视图修改，依靠的是对象，数组都指向同一个内存地址的特性
             const children = that.parentData.children || [];
             children.push({
               title: that.groupCode,
               expand: true,
               resource: {
-                brand: null,
-                btime: null,
-                buser: null,
                 code: that.groupCode,
-                del: null,
-                etime: null,
-                euser: null,
                 id: null,
-                memo: null,
                 name: that.groupCode,
                 pcode: that.parentData.resource.treecode,
-                treecode: response.data
+                treecode: response.data.data
               }
             });
             that.$set(that.parentData, 'children', children);
             that.groupCode = "";
             that.groupName = "";
           } else {
-            that.$Message.error("增加失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -196,15 +189,15 @@ export default {
           treeCode: this.deleteNodeData.resource.treecode
         }
       }).then((response) => {
-        if (response.data == "success") {
-          that.$Message.success("删除成功");
+        if (response.data.status == 0) {
+          that.$Message.success(response.data.msg);
           // 视图修改，依靠的是对象，数组都指向同一个内存地址的特性
           const parentKey = that.deleteNode.parent;
           const parent = that.root.find(el => el.nodeKey === parentKey).node;
           const index = parent.children.indexOf(that.deleteNodeData);
           parent.children.splice(index, 1);
         } else {
-          that.$Message.error("删除失败");
+          that.$Message.error(response.data.msg);
         }
       }).catch((error) => {
         that.$Message.error({

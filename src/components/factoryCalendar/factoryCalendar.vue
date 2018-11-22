@@ -3,7 +3,7 @@
     <div class="factoryCalenderWrapper rightBlockTabpaneWrapper" ref="rightBlockTabpaneWrapper">
       <transition name="fade">
         <div v-show="!isShowSettingBlock">
-          <Table height="450" :loading="sumTableLoading" border :columns="sumTableTitle" :data="sumTableData" @on-row-dblclick="clickSumTable"></Table>
+          <Table height="450" :loading="sumTableLoading" border :columns="sumTableTitle" :data="sumTableData"></Table>
           <div style="margin-top: 30px;text-align:center;">
             <Button type="primary" @click="addSumTable">新 增 工 作 日 历</Button>
           </div>
@@ -93,6 +93,10 @@
               </div>
               <div style="margin-top:20px;">结束日期：<DatePicker type="date" @on-change="changeInputFestivalEtime" :value="inputFestivalEtime" placeholder="选择日期" style="margin-left: 10px;width: 200px" :clearable="false"></DatePicker>
               </div>
+            </Modal>
+            <!-- 删除日历 -->
+            <Modal v-model="isShowDeleteBlock" v-bind:title="deleteBlockTitle" @on-ok="deleteBlockOk" @on-cancel="deleteBlockCancel" ok-text="确认" cancel-text="取消">
+              <div>{{deleteBlockText}}</div>
             </Modal>
           </div>
         </div>
@@ -226,6 +230,41 @@ export default {
               }
             });
           }
+        },
+        {
+          title: '操作',
+          key: 'action',
+          width: 150,
+          align: 'center',
+          render: (h, params) => {
+            return h('div', [
+              h('Button', {
+                props: {
+                  type: 'primary',
+                  size: 'small'
+                },
+                style: {
+                  marginRight: '5px'
+                },
+                on: {
+                  click: () => {
+                    this.clickSumTable(params.row, params.index)
+                  }
+                }
+              }, '修改'),
+              h('Button', {
+                props: {
+                  type: 'error',
+                  size: 'small'
+                },
+                on: {
+                  click: () => {
+                    this.deleteSumTable(params.row, params.index)
+                  }
+                }
+              }, '删除')
+            ]);
+          }
         }
       ],
       sumTableData: [], // 主档数据
@@ -294,7 +333,10 @@ export default {
       modifyIndex: "", // 修改特殊日期的索引
       inputFestivalName: "", // 设置特殊日期的名称
       inputFestivalBtime: "", // 设置特殊日期的开始日期
-      inputFestivalEtime: "" // 设置特殊日期的结束日期
+      inputFestivalEtime: "", // 设置特殊日期的结束日期
+      isShowDeleteBlock: false,
+      deleteBlockText: "是否删除该工作日历",
+      deleteBlockTitle: "删除工作日历"
     }
   },
   created: function() {
@@ -311,7 +353,7 @@ export default {
       this.sumTableLoading = true;
       this.axios.get(this.seieiURL + '/factorycalender/getMainTable').then((response) => {
         var list = [];
-        response.data.forEach((item) => {
+        response.data.data.forEach((item) => {
           var listItem = {};
           listItem.year = item.year;
           listItem.btime = item.begintime;
@@ -349,7 +391,7 @@ export default {
       var that = this;
       this.axios.get(this.seieiURL + '/factorycalender/getFestivalList?serialno=' + data.serialno).then((response) => {
         var list = [];
-        response.data.forEach((item) => {
+        response.data.data.forEach((item) => {
           var listItem = {};
           listItem.festivalName = item.holidaysname;
           listItem.btime = timeStampToString(new Date(item.begindate));
@@ -371,7 +413,7 @@ export default {
     addSumTable: function() {
       var that = this;
       this.axios.get(this.seieiURL + '/factorycalender/getSerialnoForMainTable').then((response) => {
-        that.serialno = response.data;
+        that.serialno = response.data.data;
         that.isAddMainTable = true;
         that.weekDay = [];
         that.isShowSettingBlock = true;
@@ -412,11 +454,11 @@ export default {
     removeFestival: function(index) {
       var that = this;
       this.axios.get(this.seieiURL + "/factorycalender/deleteFestival?guid=" + this.inputTableData[index].guid).then((response) => {
-        if (response.data == "success") {
+        if (response.data.status == 0) {
           that.inputTableData.splice(index, 1);
-          that.$Message.success("删除成功");
+          that.$Message.success(response.data.msg);
         } else {
-          that.$Message.error("删除失败");
+          that.$Message.error(response.data.msg);
         }
 
       }).catch((error) => {
@@ -451,10 +493,10 @@ export default {
         this.axios.get(this.seieiURL + "/factorycalender/updateFestival", {
           params: args
         }).then((response) => {
-          if (response.data == "success") {
-            that.$Message.success("修改成功");
+          if (response.data.status == 0) {
+            that.$Message.success(response.data.msg);
           } else {
-            that.$Message.error("修改失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -492,16 +534,16 @@ export default {
         this.axios.get(this.seieiURL + "/factorycalender/insertFestival", {
           params: args
         }).then((response) => {
-          if (response.data && !(response.data == "fail")) {
+          if (response.data.status == 0) {
             that.$set(that.inputTableData, that.inputTableData.length, {
               "festivalName": that.inputFestivalName,
               "btime": timeStampToString(that.inputFestivalBtime),
               "etime": timeStampToString(that.inputFestivalEtime),
-              "guid": response.data
+              "guid": response.data.data
             });
-            that.$Message.success("新增成功");
+            that.$Message.success(response.data.msg);
           } else {
-            that.$Message.error("新增失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -560,12 +602,12 @@ export default {
             params: args
           }).then((response) => {
             this.isSubmitloading = false;
-            if (response.data == "success") {
-              that.$Message.success("保存成功");
+            if (response.data.status == 0) {
+              that.$Message.success(response.data.msg);
               that.isShowSettingBlock = false;
               that.reloadMainTable();
             } else {
-              that.$Message.error("保存失败");
+              that.$Message.error(response.data.msg);
             }
           }).catch((error) => {
             that.$Message.error({
@@ -580,13 +622,13 @@ export default {
             params: args
           }).then((response) => {
             this.isSubmitloading = false;
-            if (response.data == "success") {
+            if (response.data.status == 0) {
               that.isAddMainTable = false;
-              that.$Message.success("保存成功");
+              that.$Message.success(response.data.msg);
               that.isShowSettingBlock = false;
               that.reloadMainTable();
             } else {
-              that.$Message.error("保存失败");
+              that.$Message.error(response.data.msg);
             }
           }).catch((error) => {
             that.$Message.error({
@@ -604,6 +646,35 @@ export default {
       this.inputTableData = [];
       this.isAddMainTable = false;
       this.isShowSettingBlock = false;
+    },
+    deleteSumTable: function(data, id) {
+      this.isShowDeleteBlock = true;
+      this.serialno = data.serialno;
+    },
+    deleteBlockOk: function() {
+      var that = this;
+      this.axios.get(this.seieiURL + "/factorycalender/deleteMainTable", {
+        params: {
+          serialno: this.serialno
+        }
+      }).then((response) => {
+        if (response.data.status == 0) {
+          that.$Message.success(response.data.msg);
+          that.reloadMainTable();
+        } else {
+          that.$Message.error(response.data.msg);
+        }
+      }).catch((error) => {
+        that.$Message.error({
+          content: "服务器异常,请刷新！！",
+          duration: 0,
+          closable: true
+        });
+        console.log(error)
+      });
+    },
+    deleteBlockCancel: function() {
+
     }
   }
 }

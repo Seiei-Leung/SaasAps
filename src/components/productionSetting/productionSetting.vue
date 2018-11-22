@@ -495,23 +495,23 @@ export default {
           serialno: this.serialno
         }
       }).then((response) => {
-        that.attributeTableData = response.data.lineProperties;
-        response.data.lineWorkinghours.sort((f, s) => {
+        that.attributeTableData = response.data.data.lineProperties;
+        response.data.data.lineWorkinghours.sort((f, s) => {
           return Number(f.bdate) - Number(s.bdate);
         });
-        response.data.lineWorkinghours.forEach((item) => {
+        response.data.data.lineWorkinghours.forEach((item) => {
           item.edate = timeStampToString(new Date(item.edate));
           item.bdate = timeStampToString(new Date(item.bdate));
         });
-        that.workTimeTableData = response.data.lineWorkinghours;
-        response.data.numberofwork.sort((f, s) => {
+        that.workTimeTableData = response.data.data.lineWorkinghours;
+        response.data.data.numberofwork.sort((f, s) => {
           return Number(f.bdate) - Number(s.bdate);
         });
-        response.data.numberofwork.forEach((item) => {
+        response.data.data.numberofwork.forEach((item) => {
           item.edate = timeStampToString(new Date(item.edate));
           item.bdate = timeStampToString(new Date(item.bdate));
         });
-        that.peopleNumTableData = response.data.numberofwork;
+        that.peopleNumTableData = response.data.data.numberofwork;
         that.inputTableLoading = false;
       })
     },
@@ -519,7 +519,7 @@ export default {
     addSumTable: function() {
       var that = this;
       this.axios.get(this.seieiURL + '/plandategroup/deleteLineProperties').then((response) => {
-        that.serialno = response.data;
+        that.serialno = response.data.data;
         that.isShowSettingBlock = true;
         that.isAddMainTable = true;
         that.inputTableLoading = false;
@@ -549,11 +549,11 @@ export default {
           guid: this.attributeTableData[index].guid
         }
       }).then((response) => {
-        if (response.data == "success") {
+        if (response.data.status == 0) {
           that.attributeTableData.splice(index, 1);
-          that.$Message.success("删除成功");
+          that.$Message.success(response.data.msg);
         } else {
-          that.$Message.error("删除失败");
+          that.$Message.error(response.data.msg);
         }
       }).catch((error) => {
         that.$Message.error({
@@ -592,10 +592,10 @@ export default {
             efficiency: this.inputProperityEfficiency
           }
         }).then((response) => {
-          if (response.data == "success") {
-            that.$Message.success("修改成功");
+          if (response.data.status == 0) {
+            that.$Message.success(response.data.msg);
           } else {
-            that.$Message.error("修改失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -615,15 +615,15 @@ export default {
             efficiency: this.inputProperityEfficiency
           }
         }).then((response) => {
-          if (response.data && !(response.data == "fail")) {
+          if (response.data.status == 0) {
             that.$set(that.attributeTableData, that.attributeTableData.length, {
               propertyName: this.inputProperityName,
               efficiency: this.inputProperityEfficiency,
-              guid: response.data
+              guid: response.data.data
             });
-            that.$Message.success("新增成功");
+            that.$Message.success(response.data.msg);
           } else {
-            that.$Message.error("新增失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -657,11 +657,11 @@ export default {
           guid: this.workTimeTableData[index].guid
         }
       }).then((response) => {
-        if (response.data == "success") {
+        if (response.data.status == 0) {
           that.workTimeTableData.splice(index, 1);
-          that.$Message.success("删除成功");
+          that.$Message.success(response.data.msg);
         } else {
-          that.$Message.error("删除失败");
+          that.$Message.error(response.data.msg);
         }
       }).catch((error) => {
         that.$Message.error({
@@ -705,10 +705,10 @@ export default {
             workinghours: this.settingWorkTime
           }
         }).then((response) => {
-          if (response.data == "success") {
-            that.$Message.success("修改成功");
+          if (response.data.status == 0) {
+            that.$Message.success(response.data.msg);
           } else {
-            that.$Message.error("修改失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -729,16 +729,16 @@ export default {
             workinghours: this.settingWorkTime
           }
         }).then((response) => {
-          if (response.data && !(response.data == "fail")) {
+          if (response.data.status == 0) {
             that.$set(that.workTimeTableData, that.workTimeTableData.length, {
               bdate: timeStampToString(this.settingWorkTimeBtime),
               edate: timeStampToString(this.settingWorkTimeEtime),
               workinghours: this.settingWorkTime,
-              guid: response.data
+              guid: response.data.data
             });
-            that.$Message.success("新增成功");
+            that.$Message.success(response.data.msg);
           } else {
-            that.$Message.error("新增失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -772,11 +772,11 @@ export default {
           guid: this.peopleNumTableData[index].guid
         }
       }).then((response) => {
-        if (response.data == "success") {
+        if (response.data.status == 0) {
           that.peopleNumTableData.splice(index, 1);
-          that.$Message.success("删除成功");
+          that.$Message.success(response.data.msg);
         } else {
-          that.$Message.error("删除失败");
+          that.$Message.error(response.data.msg);
         }
       }).catch((error) => {
         that.$Message.error({
@@ -812,10 +812,10 @@ export default {
             numberofwork: this.settingNumberofwork
           }
         }).then((response) => {
-          if (response.data == "success") {
-            that.$Message.success("修改成功");
+          if (response.data.status == 0) {
+            that.$Message.success(response.data.msg);
           } else {
-            that.$Message.error("修改失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -836,16 +836,16 @@ export default {
             numberofwork: this.settingNumberofwork
           }
         }).then((response) => {
-          if (response.data && !(response.data == "fail")) {
+          if (response.data.status == 0) {
             that.$set(that.peopleNumTableData, that.peopleNumTableData.length, {
               bdate: timeStampToString(this.settingNumberofworkBtime),
               edate: timeStampToString(this.settingNumberofworkEtime),
               numberofwork: this.settingNumberofwork,
-              guid: response.data
+              guid: response.data.data
             });
-            that.$Message.success("新增成功");
+            that.$Message.success(response.data.msg);
           } else {
-            that.$Message.error("新增失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({
@@ -894,12 +894,12 @@ export default {
         this.axios.get(url, {
           params: args
         }).then((response) => {
-          if (response.data == "success") {
-            that.$Message.success("保存成功");
+          if (response.data.status == 0) {
+            that.$Message.success(response.data.msg);
             that.isSubmitloading = false;
             that.isAddMainTable = false;
           } else {
-            that.$Message.error("保存失败");
+            that.$Message.error(response.data.msg);
           }
         }).catch((error) => {
           that.$Message.error({

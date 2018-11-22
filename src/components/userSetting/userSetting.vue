@@ -63,7 +63,7 @@
           </div>
         </div>
       </Modal>
-      <!-- 删除组别 -->
+      <!-- 删除用户 -->
       <Modal v-model="isShowDeleteBlock" v-bind:title="deleteBlockTitle" @on-ok="deleteBlockOk" @on-cancel="deleteBlockCancel" ok-text="确认" cancel-text="取消">
         <div>{{deleteBlockText}}</div>
       </Modal>
@@ -180,7 +180,7 @@ export default {
     reloadTree: function() {
       var that = this;
       this.axios.get(this.seieiURL + "/sygroup/getAll").then((response) => {
-        that.treeData = response.data;
+        that.treeData = response.data.data;
       }).catch((error) => {
         that.$Message.error({
           content: "服务器异常,请刷新！！",
@@ -216,6 +216,10 @@ export default {
       ]);
     },
     selectTree: function(root, node, data) {
+      console.log(data)
+      if (node.nodeKey == 0) {
+        return;
+      }
       if (this.$refs['userSettingLeftBlock'].getElementsByClassName('active')[0]) {
         this.$refs['userSettingLeftBlock'].getElementsByClassName('active')[0].className = this.$refs['userSettingLeftBlock'].getElementsByClassName('active')[0].className.replace(" active", "");
       }

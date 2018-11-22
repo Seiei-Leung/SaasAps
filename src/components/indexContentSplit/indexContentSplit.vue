@@ -64,6 +64,10 @@
                 <TabPane label="用户设置" v-if="isShowList['11']" name="11">
                   <v-userSetting></v-userSetting>
                 </TabPane>
+                <!-- 权限设置 -->
+                <TabPane label="权限设置" v-if="isShowList['12']" name="12">
+                  <v-roleSetting></v-roleSetting>
+                </TabPane>
                 <!-- 用户组别 -->
                 <TabPane label="用户组别" v-if="isShowList['13']" name="13">
                   <v-userGroup></v-userGroup>
@@ -94,6 +98,7 @@ import productionSetting from "../productionSetting/productionSetting";
 import productionClass from "../productionClass/productionClass";
 import userGroup from "../userGroup/userGroup";
 import userSetting from "../userSetting/userSetting";
+import roleSetting from "../roleSetting/roleSetting";
 
 const headerBarHeight = 40;
 
@@ -105,6 +110,7 @@ export default {
       // 用于是否显示右侧模块
       isShowList: {
         11: false, // 用户设置
+        12: false, // 权限设置
         13: false, // 用户组别
         32: false, // 工厂日历
         31: false, // 生产设置
@@ -179,7 +185,8 @@ export default {
     'v-productionSetting': productionSetting,
     'v-productionClass': productionClass,
     'v-userGroup': userGroup,
-    'v-userSetting': userSetting
+    'v-userSetting': userSetting,
+    'v-roleSetting': roleSetting
   }
 }
 
