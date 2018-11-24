@@ -66,7 +66,7 @@
                 </TabPane>
                 <!-- 权限设置 -->
                 <TabPane label="权限设置" v-if="isShowList['12']" name="12">
-                  <v-roleSetting></v-roleSetting>
+                  <v-psRoleSetting></v-psRoleSetting>
                 </TabPane>
                 <!-- 用户组别 -->
                 <TabPane label="用户组别" v-if="isShowList['13']" name="13">
@@ -98,7 +98,7 @@ import productionSetting from "../productionSetting/productionSetting";
 import productionClass from "../productionClass/productionClass";
 import userGroup from "../userGroup/userGroup";
 import userSetting from "../userSetting/userSetting";
-import roleSetting from "../roleSetting/roleSetting";
+import psRoleSetting from "../psRoleSetting/psRoleSetting";
 
 const headerBarHeight = 40;
 
@@ -186,7 +186,7 @@ export default {
     'v-productionClass': productionClass,
     'v-userGroup': userGroup,
     'v-userSetting': userSetting,
-    'v-roleSetting': roleSetting
+    'v-psRoleSetting': psRoleSetting
   }
 }
 

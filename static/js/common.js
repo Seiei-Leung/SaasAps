@@ -1,3 +1,14 @@
+const cssData = {
+	pageHeaderHeight: 40,
+	containerPageTabHeight: 49,
+	topWrapperTitleHeight: 30, // 权限设置页面中左侧小栏目的标题高度
+	topWrapperTitleMarginTop: 5, // 权限设置页面中左侧小栏目的margin-top
+	rightBlockTabpaneWrapperPaddingBottom: 30,
+	borderHeight: 1
+}
+
+
+
 // 时间戳转化为字符串
 function timeStampToString(timeStamp) {
 	var
