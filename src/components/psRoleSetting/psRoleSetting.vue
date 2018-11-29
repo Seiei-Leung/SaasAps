@@ -27,7 +27,7 @@
           <Tree :data="mainTreeData" show-checkbox multiple ref="mainTree"></Tree>
         </div>
         <div style="margin-top: 15px;text-align:center;">
-        	<Button type="primary" @click="getSelectedNodes">保 存 设 置</Button>
+        	<Button type="primary" @click="submitData">保 存 设 置</Button>
         </div>
       </div>
     </div>
@@ -50,8 +50,7 @@ export default {
       tableData: [],
       mainTreeData: [],
       highlightRow: true,
-      selectedUserId: "",
-      selectedPSLine: []
+      selectedUserId: ""
     }
   },
   methods: {
@@ -170,11 +169,39 @@ export default {
       resultObj.expand = false;
       resultList.push(resultObj);
       this.mainTreeData = resultList;
-      console.log(this.mainTreeData)
     },
-    getSelectedNodes: function() {
-      console.log(this.$refs.mainTree.getSelectedNodes());
+    submitData: function() {
       console.log(this.$refs.mainTree.getCheckedNodes());
+      if (!this.selectedUserId) {
+      	this.$Message.error("请先选择用户！！");
+      	return;
+      }
+      var
+        list = [],
+        that = this;
+      this.$refs.mainTree.getCheckedNodes().forEach((item) => {
+      	if (item.serialno) {
+      		list.push(item.serialno);
+      	}
+      });
+      this.axios.post(this.seieiURL + "/psright/updatePSRight", {
+          list: list,
+          id: this.selectedUserId
+      }).then((response) => {
+          if (response.data.status == 0) {
+            that.$Message.success(response.data.msg);
+          } else {
+            that.$Message.error(response.data.msg);
+          }
+      }).catch((error) => {
+        that.tableLoading = false;
+        that.$Message.error({
+          content: "服务器异常,请刷新！！",
+          duration: 0,
+          closable: true
+        });
+        console.log(error)
+      });
     }
   },
   created: function() {
