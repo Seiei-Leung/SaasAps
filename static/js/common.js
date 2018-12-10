@@ -7,6 +7,10 @@ const cssData = {
 	borderHeight: 1
 }
 
+const CONST = {
+	"IS_ONLINE": "isOnline",
+	"CURRENT_USER_MSG": "currentUserMsg"
+}
 
 
 // 时间戳转化为字符串

@@ -10,7 +10,7 @@
             </div>
             <div class="leftBlock" ref="leftBlock">
               <Menu :theme="theme" width="100%" accordion @on-select="openTag">
-                <Submenu name="1">
+                <Submenu name="1" v-if="isAdmin">
                   <template slot="title">
                     <Icon type="ios-paper" />
                     权限管理
@@ -19,7 +19,7 @@
                   <MenuItem name="12">权限设置</MenuItem>
                   <MenuItem name="13">用户组别</MenuItem>
                 </Submenu>
-                <Submenu name="2">
+                <Submenu name="2" v-if="isAdmin">
                   <template slot="title">
                     <Icon type="ios-people" />
                     参数设置
@@ -127,6 +127,11 @@ export default {
     },
     // 左侧栏项目点击显示事件
     openTag: function(name) {
+      // 如果点击排产器，跳转页面
+      if (name == "42") {
+        window.open("http://localhost:8080/ProduceSchedule/productSchedule.html");
+        return true;
+      }
       // 框架有bug，必须按 TabPane 组件Dom书写顺序进行加载组件，否则会导致 Tab 组件与 TabPane 组件内容错乱
       // 记录已经激活的Tab组件后，设置 Tab 组件为初始状态
       var isnowShowingListHadName = false; 
@@ -170,6 +175,11 @@ export default {
         }
       }
     },
+  },
+  computed: {
+    isAdmin: function() {
+      return this.$store.state.isAdmin;
+    }
   },
   created: function() {
     // 初始化页面

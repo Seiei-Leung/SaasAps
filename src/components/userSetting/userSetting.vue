@@ -3,7 +3,10 @@
     <div class="userSettingWrapper rightBlockTabpaneWrapper" ref="rightBlockTabpaneWrapper">
       <!-- 左侧栏 -->
       <div class="userSettingLeftBlock" ref="userSettingLeftBlock">
-        <div>
+        <div class="spinWrapper" v-show="isShowSpin">
+          <Spin fix size="large"></Spin>
+        </div>
+        <div v-show="!isShowSpin">
           <Tree :data="treeData" :render="renderContent"></Tree>
         </div>
       </div>
@@ -173,15 +176,19 @@ export default {
       isInsertUserSetting: false,
       isShowDeleteBlock: false,
       deleteBlockText: "是否删除该用户设置",
-      deleteBlockTitle: "删除用户设置"
+      deleteBlockTitle: "删除用户设置",
+      isShowSpin: true
     };
   },
   methods: {
     reloadTree: function() {
       var that = this;
+      this.isShowSpin = true;
       this.axios.get(this.seieiURL + "/sygroup/getAll").then((response) => {
         that.treeData = response.data.data;
+        that.isShowSpin = false;
       }).catch((error) => {
+        that.isShowSpin = false;
         that.$Message.error({
           content: "服务器异常,请刷新！！",
           duration: 0,
@@ -376,6 +383,11 @@ export default {
 <style>
 #userSetting-component {
   font-size: 0px;
+}
+
+#userSetting-component .spinWrapper {
+  position: relative;
+  margin-top: 50px
 }
 
 #userSetting-component .userSettingWrapper {

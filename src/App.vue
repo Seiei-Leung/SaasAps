@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-      <v-signin v-show="!isSignin"></v-signin>
-      <div v-show="isSignin">
+      <v-signin v-if="!isSignin"></v-signin>
+      <div v-if="isSignin">
         <div class="indexPageWrapper">
           <v-pageHeader></v-pageHeader>
           <div class="content">
@@ -27,6 +27,15 @@ export default {
   computed: {
     isSignin: function() {
       return this.$store.state.isSignin;
+    }
+  },
+  created: function() {
+    if (sessionStorage.getItem(CONST.IS_ONLINE)) {
+      this.$store.commit("toggleIsSignin");
+    }
+    var usermsg = sessionStorage.getItem(CONST.CURRENT_USER_MSG);
+    if (usermsg) {
+      this.$store.commit("toggleIsAdmin", JSON.parse(usermsg).isadmin)
     }
   },
   components: {

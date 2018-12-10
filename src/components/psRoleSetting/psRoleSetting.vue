@@ -7,7 +7,12 @@
             用户组别
           </div>
           <div class="topContain" ref="topContain">
-            <Tree :data="treeData" @on-select-change="selectUserGroup"></Tree>
+            <div class="spinWrapper" v-show="isShowSpinTop">
+              <Spin fix size="large"></Spin>
+            </div>
+            <div v-show="!isShowSpinTop">
+              <Tree :data="treeData" @on-select-change="selectUserGroup"></Tree>
+            </div>
           </div>
         </div>
         <div class="bottomWrapper" style="margin-top: 10px;">
@@ -24,10 +29,15 @@
           生产线
         </div>
         <div class="bottomContain" ref="rightContainer">
-          <Tree :data="mainTreeData" show-checkbox multiple ref="mainTree"></Tree>
+            <div class="spinWrapper" v-show="isShowSpinRight">
+              <Spin fix size="large"></Spin>
+            </div>
+            <div v-show="!isShowSpinRight">
+              <Tree :data="mainTreeData" show-checkbox multiple ref="mainTree"></Tree>
+            </div>
         </div>
         <div style="margin-top: 15px;text-align:center;">
-        	<Button type="primary" @click="submitData">保 存 设 置</Button>
+          <Button type="primary" @click="submitData">保 存 设 置</Button>
         </div>
       </div>
     </div>
@@ -50,15 +60,21 @@ export default {
       tableData: [],
       mainTreeData: [],
       highlightRow: true,
-      selectedUserId: ""
+      selectedUserId: "",
+      isShowSpinTop: true,
+      isShowSpinRight: true
     }
   },
   methods: {
     reloadMainTable: function() {
       var that = this;
+      this.isShowSpinTop = true;
+      this.isShowSpinRight = true;
       this.axios.get(this.seieiURL + "/sygroup/getAll").then((response) => {
         that.treeData = response.data.data;
+        that.isShowSpinTop = false;
       }).catch((error) => {
+        that.isShowSpinTop = false;
         that.$Message.error({
           content: "服务器异常,请刷新！！",
           duration: 0,
@@ -68,7 +84,9 @@ export default {
       });
       this.axios.get(this.seieiURL + "/psright/getPSRightProductLine").then((response) => {
         that.mainTreeData.push(response.data.data);
+        that.isShowSpinRight = false;
       }).catch((error) => {
+        that.isShowSpinRight = false;
         that.$Message.error({
           content: "服务器异常,请刷新！！",
           duration: 0,
@@ -106,8 +124,8 @@ export default {
           id: data.id
         }
       }).then((response) => {
-      this.test = true
-      	var resultList = [];
+        this.test = true
+        var resultList = [];
         var
           mainTreeData = that.mainTreeData[0].children,
           resultmainTreeData = that.mainTreeData[0].children.slice();
@@ -173,26 +191,26 @@ export default {
     submitData: function() {
       console.log(this.$refs.mainTree.getCheckedNodes());
       if (!this.selectedUserId) {
-      	this.$Message.error("请先选择用户！！");
-      	return;
+        this.$Message.error("请先选择用户！！");
+        return;
       }
       var
         list = [],
         that = this;
       this.$refs.mainTree.getCheckedNodes().forEach((item) => {
-      	if (item.serialno) {
-      		list.push(item.serialno);
-      	}
+        if (item.serialno) {
+          list.push(item.serialno);
+        }
       });
       this.axios.post(this.seieiURL + "/psright/updatePSRight", {
-          list: list,
-          id: this.selectedUserId
+        list: list,
+        id: this.selectedUserId
       }).then((response) => {
-          if (response.data.status == 0) {
-            that.$Message.success(response.data.msg);
-          } else {
-            that.$Message.error(response.data.msg);
-          }
+        if (response.data.status == 0) {
+          that.$Message.success(response.data.msg);
+        } else {
+          that.$Message.error(response.data.msg);
+        }
       }).catch((error) => {
         that.tableLoading = false;
         that.$Message.error({
@@ -223,7 +241,10 @@ export default {
 #psRoleSetting-component {
   font-size: 0
 }
-
+#psRoleSetting-component .spinWrapper {
+  position: relative;
+  margin-top: 50px
+}
 #psRoleSetting-component .leftContainer,
 #psRoleSetting-component .rightContainer {
   display: inline-block;
@@ -253,7 +274,7 @@ export default {
 #psRoleSetting-component .leftContainer .topContain,
 #psRoleSetting-component .rightContainer .bottomContain {
   padding: 5px;
-  font-size:14px;
+  font-size: 14px;
   border: 1px solid #ddd;
   border-top: none;
   overflow-y: scroll;
